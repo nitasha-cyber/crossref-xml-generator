@@ -21,8 +21,7 @@ CONTENT_TYPE_ALIASES = {
 
 
 def _normalize_column_name(name: str) -> str:
-    key = str(name).strip()
-    lowered = key.lower()
+    lowered = str(name).strip().lower()
     return COLUMN_ALIASES.get(lowered, lowered)
 
 
@@ -57,11 +56,13 @@ def parse_excel_file(content: bytes) -> list[dict]:
             errors.append(f"Row {index}: missing required value(s): {', '.join(missing_fields)}")
             continue
 
-        normalized["content_type"] = _normalize_content_type(normalized["content_type"])
+        original_content_type = str(normalized["content_type"])
+        normalized["content_type"] = _normalize_content_type(original_content_type)
         if normalized["content_type"] not in ALLOWED_CONTENT_TYPES:
             allowed = ", ".join(sorted(ALLOWED_CONTENT_TYPES))
             errors.append(
-                f"Row {index}: invalid content_type '{row.get('content_type')}'. "
+                f"Row {index}: invalid content_type '{original_content_type}' "
+                f"(normalized to '{normalized['content_type']}'). "
                 f"Use one of: {allowed}"
             )
             continue

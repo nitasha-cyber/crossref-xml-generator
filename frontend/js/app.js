@@ -12,6 +12,7 @@ let parsedRows = [];
 let latestPayload = null;
 const REQUIRED_FIELDS = ['content_type', 'title', 'doi', 'publication_year'];
 const ALLOWED_CONTENT_TYPES = ['book', 'journal', 'report', 'proceeding', 'posted_content'];
+const MANUAL_DATA_FIELDS = ['title', 'doi', 'publication_year', 'author', 'orcid', 'license_url', 'abstract'];
 
 function formatApiError(detail, fallback) {
   if (!detail) return fallback;
@@ -113,7 +114,7 @@ function collectEntries() {
 
   const formData = Object.fromEntries(new FormData(manualForm).entries());
   const manual = cleanRecord(formData);
-  const hasManualContent = Object.keys(manual).some((key) => key !== 'content_type');
+  const hasManualContent = MANUAL_DATA_FIELDS.some((field) => String(manual[field] ?? '').trim() !== '');
   if (hasManualContent) {
     const manualIssue = validateEntry(manual, 'Manual entry');
     if (manualIssue) {
