@@ -15,6 +15,20 @@
       <input type="file" id="excelFile" accept=".xlsx,.xls" />
       <button id="uploadBtn">Upload & Parse</button>
       <p id="uploadStatus"></p>
+      <p><strong>Required columns:</strong> content_type, title, doi, publication_year</p>
+      <p><strong>Optional columns:</strong> author, orcid, Abstract, License</p>
+    </section>
+
+    <section class="card">
+      <h2>Excel Field Mapping Guide</h2>
+      <ul>
+        <li><code>doi</code> → DOI in CrossRef <strong>(required)</strong></li>
+        <li><code>title</code> → Record title <strong>(required)</strong></li>
+        <li><code>content_type</code> → One of: book, journal, report, proceeding, posted_content <strong>(required)</strong></li>
+        <li><code>publication_year</code> → Online publication year (YYYY) <strong>(required)</strong></li>
+        <li><code>Abstract</code> → JATS abstract <em>(optional)</em></li>
+        <li><code>License</code> → AccessIndicators license URL <em>(optional)</em></li>
+      </ul>
     </section>
 
     <section class="card">
