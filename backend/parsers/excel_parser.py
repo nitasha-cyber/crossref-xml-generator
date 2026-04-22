@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from io import BytesIO
 import pandas as pd
 
@@ -45,6 +46,7 @@ def parse_excel_file(content: bytes) -> list[dict]:
 
     records = []
     errors = []
+    max_year = datetime.now(timezone.utc).year + 1
     for index, row in enumerate(df.fillna("").to_dict(orient="records"), start=2):
         normalized = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
         if not any(str(v).strip() for v in normalized.values()):
@@ -67,10 +69,14 @@ def parse_excel_file(content: bytes) -> list[dict]:
         year = str(normalized["publication_year"]).strip()
         if year.endswith(".0"):
             year = year[:-2]
-        if not year.isdigit():
+        if not year.isdigit() or len(year) != 4:
             errors.append(f"Row {index}: publication_year must be a 4-digit year")
             continue
-        normalized["publication_year"] = int(year)
+        year_value = int(year)
+        if year_value < 1000 or year_value > max_year:
+            errors.append(f"Row {index}: publication_year must be between 1000 and {max_year}")
+            continue
+        normalized["publication_year"] = year_value
 
         records.append(normalized)
 

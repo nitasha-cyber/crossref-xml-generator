@@ -76,6 +76,7 @@ uploadBtn.addEventListener('click', async () => {
 });
 
 function validateEntry(entry, rowLabel) {
+  const maxYear = new Date().getUTCFullYear() + 1;
   const missing = REQUIRED_FIELDS.filter((field) => String(entry[field] ?? '').trim() === '');
   if (missing.length) return `${rowLabel}: missing required fields (${missing.join(', ')})`;
 
@@ -86,6 +87,10 @@ function validateEntry(entry, rowLabel) {
   const year = String(entry.publication_year);
   if (!/^\d{4}$/.test(year)) {
     return `${rowLabel}: publication_year must be a 4-digit year`;
+  }
+  const yearValue = Number(year);
+  if (yearValue < 1000 || yearValue > maxYear) {
+    return `${rowLabel}: publication_year must be between 1000 and ${maxYear}`;
   }
 
   return null;
