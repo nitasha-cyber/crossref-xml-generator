@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waikato Library CrossRef XML Generator</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Waikato Library CrossRef XML Generator</h1>
+
+    <section class="card">
+      <h2>1) Upload Excel</h2>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" />
+      <button id="uploadBtn">Upload & Parse</button>
+      <p id="uploadStatus"></p>
+    </section>
+
+    <section class="card">
+      <h2>2) Preview & Select Rows</h2>
+      <div class="table-wrapper">
+        <table id="previewTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3) Add Manual Entry</h2>
+      <form id="manualForm" class="grid">
+        <label>Content Type
+          <select name="content_type">
+            <option value="book">Book</option>
+            <option value="journal">Journal Article</option>
+            <option value="report">Report / Working Paper</option>
+            <option value="proceeding">Conference Proceeding</option>
+            <option value="posted_content">Posted Content</option>
+          </select>
+        </label>
+        <label>Title <input name="title" /></label>
+        <label>DOI <input name="doi" placeholder="10.xxxx/xxxxx" /></label>
+        <label>Publication Year <input name="publication_year" type="number" /></label>
+        <label>Author <input name="author" /></label>
+        <label>ORCID <input name="orcid" placeholder="0000-0000-0000-0000" /></label>
+        <label>License URL <input name="license_url" /></label>
+        <label>Abstract <textarea name="abstract"></textarea></label>
+      </form>
+    </section>
+
+    <section class="card actions">
+      <h2>4) Generate & Download</h2>
+      <button id="generateBtn">Generate XML</button>
+      <button id="downloadBtn" disabled>Download XML</button>
+      <span id="genStatus"></span>
+    </section>
+
+    <section class="card">
+      <h2>Real-time XML Preview</h2>
+      <pre id="xmlPreview"></pre>
+    </section>
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
