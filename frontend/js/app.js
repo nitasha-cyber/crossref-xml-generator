@@ -10,6 +10,18 @@ const manualForm = document.getElementById('manualForm');
 
 let parsedRows = [];
 let latestPayload = null;
+const REQUIRED_FIELDS = ['content_type', 'title', 'doi', 'publication_year'];
+const ALLOWED_CONTENT_TYPES = ['book', 'journal', 'report', 'proceeding', 'posted_content'];
+
+function formatApiError(detail, fallback) {
+  if (!detail) return fallback;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item?.msg || JSON.stringify(item)).join('; ');
+  }
+  if (typeof detail === 'object') return detail.message || JSON.stringify(detail);
+  return String(detail);
+}
 
 function cleanRecord(record) {
   const output = {};
@@ -54,7 +66,7 @@ uploadBtn.addEventListener('click', async () => {
   try {
     const res = await fetch('/api/upload-excel', { method: 'POST', body: formData });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Upload failed');
+    if (!res.ok) throw new Error(formatApiError(data.detail, 'Upload failed'));
     parsedRows = data.rows || [];
     renderTable(parsedRows);
     uploadStatus.textContent = `Loaded ${data.count} rows.`;
@@ -63,24 +75,60 @@ uploadBtn.addEventListener('click', async () => {
   }
 });
 
+function validateEntry(entry, rowLabel) {
+  const missing = REQUIRED_FIELDS.filter((field) => String(entry[field] ?? '').trim() === '');
+  if (missing.length) return `${rowLabel}: missing required fields (${missing.join(', ')})`;
+
+  if (!ALLOWED_CONTENT_TYPES.includes(String(entry.content_type))) {
+    return `${rowLabel}: invalid content_type "${entry.content_type}". Use one of: ${ALLOWED_CONTENT_TYPES.join(', ')}`;
+  }
+
+  const year = String(entry.publication_year);
+  if (!/^\d{4}$/.test(year)) {
+    return `${rowLabel}: publication_year must be a 4-digit year`;
+  }
+
+  return null;
+}
+
 function collectEntries() {
+  const errors = [];
   const selected = Array.from(document.querySelectorAll('input[data-row-index]:checked'))
-    .map(cb => parsedRows[Number(cb.dataset.rowIndex)])
-    .map(cleanRecord)
-    .filter(r => r.title && r.doi && r.publication_year);
+    .map((cb) => ({ rowIndex: Number(cb.dataset.rowIndex), row: cleanRecord(parsedRows[Number(cb.dataset.rowIndex)]) }))
+    .map(({ rowIndex, row }) => {
+      const issue = validateEntry(row, `Excel row ${rowIndex + 2}`);
+      if (issue) {
+        errors.push(issue);
+        return null;
+      }
+      row.publication_year = Number(row.publication_year);
+      return row;
+    })
+    .filter(Boolean);
 
   const formData = Object.fromEntries(new FormData(manualForm).entries());
   const manual = cleanRecord(formData);
-  if (manual.title && manual.doi && manual.publication_year) {
-    manual.publication_year = Number(manual.publication_year);
-    selected.push(manual);
+  const hasManualContent = Object.keys(manual).some((key) => key !== 'content_type');
+  if (hasManualContent) {
+    const manualIssue = validateEntry(manual, 'Manual entry');
+    if (manualIssue) {
+      errors.push(manualIssue);
+    } else {
+      manual.publication_year = Number(manual.publication_year);
+      selected.push(manual);
+    }
   }
 
-  return selected;
+  return { entries: selected, errors };
 }
 
 generateBtn.addEventListener('click', async () => {
-  const entries = collectEntries();
+  const { entries, errors } = collectEntries();
+  if (errors.length) {
+    genStatus.textContent = errors.join(' | ');
+    downloadBtn.disabled = true;
+    return;
+  }
   if (!entries.length) {
     genStatus.textContent = 'Select Excel rows and/or fill one manual entry first.';
     return;
@@ -96,7 +144,7 @@ generateBtn.addEventListener('click', async () => {
       body: JSON.stringify(latestPayload),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'XML generation failed');
+    if (!res.ok) throw new Error(formatApiError(data.detail, 'XML generation failed'));
 
     xmlPreview.textContent = data.xml;
     genStatus.textContent = `Generated XML for ${data.count} entr${data.count === 1 ? 'y' : 'ies'}.`;
@@ -119,7 +167,7 @@ downloadBtn.addEventListener('click', async () => {
 
     if (!res.ok) {
       const data = await res.json();
-      throw new Error(data.detail || 'Download failed');
+      throw new Error(formatApiError(data.detail, 'Download failed'));
     }
 
     const disposition = res.headers.get('Content-Disposition') || '';

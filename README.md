@@ -63,3 +63,12 @@ Required columns:
 - `publication_year`
 
 Optional columns include: `author`, `orcid`, `abstract`, `license_url`, `publisher`, `isbn`, `journal_title`, `issn`, `volume`, `issue`, `first_page`, `last_page`, `institution`, `report_number`, `conference_name`, `conference_location`, `posted_content_type`.
+
+### User file mapping (supported aliases)
+
+If your spreadsheet uses these column names, they are mapped automatically:
+
+- `Abstract` → `abstract` (optional)
+- `License` → `license_url` (optional)
+
+`content_type` must be one of: `book`, `journal`, `report`, `proceeding`, `posted_content`.
