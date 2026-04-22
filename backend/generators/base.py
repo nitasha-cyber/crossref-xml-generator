@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from lxml import etree
 
 from config import CROSSREF_BATCH_ID_PREFIX, DEPOSITOR_EMAIL, DEPOSITOR_NAME, REGISTRANT
@@ -11,7 +11,7 @@ AI_NS = "http://www.crossref.org/AccessIndicators.xsd"
 class BaseGenerator:
     @staticmethod
     def create_root():
-        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         root = etree.Element(
             "doi_batch",
             version="5.3.1",

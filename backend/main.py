@@ -1,11 +1,11 @@
 from io import BytesIO
 import zipfile
-from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from config import APP_NAME, APP_VERSION, FRONTEND_DIR
@@ -69,6 +69,8 @@ class GenerationRequest(BaseModel):
 
 
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
+app.mount("/css", StaticFiles(directory=FRONTEND_DIR / "css"), name="css")
+app.mount("/js", StaticFiles(directory=FRONTEND_DIR / "js"), name="js")
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,22 +95,6 @@ def get_frontend():
     if not index_file.exists():
         raise HTTPException(status_code=404, detail="Frontend not found")
     return FileResponse(index_file)
-
-
-@app.get("/css/{filename}")
-def get_css(filename: str):
-    file_path = FRONTEND_DIR / "css" / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="CSS file not found")
-    return FileResponse(file_path)
-
-
-@app.get("/js/{filename}")
-def get_js(filename: str):
-    file_path = FRONTEND_DIR / "js" / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="JS file not found")
-    return FileResponse(file_path)
 
 
 @app.post("/api/upload-excel")
